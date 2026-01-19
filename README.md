@@ -8,3 +8,5 @@ TeXBot can be run in Docker with `docker build -t tex .` followed by `docker run
 TeXBot runs on TeX, not LaTeX. It can only render inside math mode, not in documents. Images are uploaded to [https://0x0.st/](https://0x0.st/).
 
 ## Showcase
+![Example messages](/imgs/1.png)
+![Example results](/imgs/2.png)
