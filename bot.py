@@ -2,6 +2,7 @@ import pydle
 import asyncio
 import re
 import tex
+import os
 import requests
 import sys
 
@@ -55,6 +56,7 @@ class Bot(pydle.Client):
                 headers={"User-Agent": "curl/7.85.0"},
             )
             image_urls.append(r.text)
+            os.remove(res)
         
         if len(image_urls) < 1:
             return
