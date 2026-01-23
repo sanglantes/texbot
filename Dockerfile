@@ -13,9 +13,9 @@ RUN apt-get update \
 
 COPY . .
 
-RUN mkdir -p /home/.config/matplotlib && \
+RUN mkdir -p /root/.config/matplotlib && \
     echo "text.latex.preamble : \\usepackage{amssymb} \\usepackage{amsmath}" \
-    >> /home/.config/matplotlib/matplotlibrc
+    >> /root/.config/matplotlib/matplotlibrc
 
-CMD ["python3", "bot.py", "irc.zoite.net", "#test", "1"]
+CMD ["python3", "bot.py", "irc.zoite.net", "#antisocial", "1"]
 # server address, channel, use ssl (0, 1)

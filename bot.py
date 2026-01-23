@@ -21,26 +21,41 @@ class Bot(pydle.Client):
     async def on_message(self, target, source, message):
         if source == self.nickname:
             return
+        
         image_urls = []
-        for e, m in enumerate(tex_pattern.findall(message)):
+        display_n = 0
+        replace_n = 0
+        new_message = ""
+
+        for m in tex_pattern.findall(message):
             if r"\[" in m:
-                m = r"$$" + m[2:-2] + r"$$"
+                m_2 = r"$$" + m[2:-2] + r"$$"
+                new_message = message.replace(m, m_2)
+                display_n += 1
             else:
-                m = r"$" + m[2:-2] + r"$"
+                if display_n > 0:
+                    await self.message(target, f"\x02[TeX]\x02 Cannot render inline math and display math in the same query".strip())
+                    return
+                m_2 = r"$" + m[2:-2] + r"$"
+                new_message = message.replace(m, m_2)
+            replace_n += 1
 
-            ok, res = tex.render_tex(source, m, e)
-            if not ok:
-                image_urls.append("Failed to render")
-                continue
+        if replace_n < 1:
+            return
 
-            with open(res, "rb") as f:
-                r = requests.post(
-                    "https://0x0.st/",
-                    files={"file": f},
-                    headers={"User-Agent": "curl/7.85.0"},
-                )
-                image_urls.append(r.text)
-
+        ok, res = tex.render_tex(source, new_message, 0)
+        if not ok:
+            await self.message(target, f"\x02[TeX]\x02 Failed to render".strip())
+            return
+        
+        with open(res, "rb") as f:
+            r = requests.post(
+                "https://0x0.st/",
+                files={"file": f},
+                headers={"User-Agent": "curl/7.85.0"},
+            )
+            image_urls.append(r.text)
+        
         if len(image_urls) < 1:
             return
 
@@ -52,5 +67,5 @@ class Bot(pydle.Client):
 loop = asyncio.new_event_loop()
 asyncio.set_event_loop(loop)
 
-client = Bot('TeXBot', realname="TeXBot 1.0")
+client = Bot('TeXBot', realname="TeXBot 1.1")
 client.run(addr, tls=bool(int(use_ssl)), tls_verify=False)
