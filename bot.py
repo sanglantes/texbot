@@ -5,6 +5,7 @@ import tex
 import os
 import requests
 import sys
+from pprint import pprint
 
 tex_pattern = re.compile(
     r'\\\[.*?\\\]|\\\(.*?\\\)', re.VERBOSE|re.DOTALL
@@ -19,33 +20,37 @@ class Bot(pydle.Client):
         await self.join(channel)
         await self.set_mode(self.nickname, "+B")
     
-    async def on_message(self, target, source, message):
+    async def on_message(self, target, source, message: str):
         if source == self.nickname:
             return
         
         image_urls = []
         display_n = 0
+        inline_n = 0
         replace_n = 0
         new_message = ""
 
         for m in tex_pattern.findall(message):
             if r"\[" in m:
                 m_2 = r"$$" + m[2:-2] + r"$$"
-                new_message = message.replace(m, m_2)
+                new_message = m_2
                 display_n += 1
             else:
-                if display_n > 0:
-                    await self.message(target, f"\x02[TeX]\x02 Cannot render inline math and display math in the same query".strip())
-                    return
                 m_2 = r"$" + m[2:-2] + r"$"
-                new_message = message.replace(m, m_2)
+                new_message = message.replace(m, m_2) if len(m_2) > 2 else message.replace(m, "")
+                inline_n += 1
             replace_n += 1
 
         if replace_n < 1:
             return
+        
+        if inline_n > 0 and display_n > 0:
+            await self.message(target, f"\x02[TeX]\x02 Cannot render inline math and display math in the same query".strip())
+            return
 
         ok, res = tex.render_tex(source, new_message, 0)
         if not ok:
+            pprint(res, stream=sys.stderr)
             await self.message(target, f"\x02[TeX]\x02 Failed to render".strip())
             return
         
